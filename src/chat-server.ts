@@ -3,6 +3,7 @@ import express from 'express';
 import * as WebSocket from 'ws';
 
 import { MessageModel } from './models/message-model';
+import { Socket } from 'dgram';
 
 export class ChatServer {
     public static readonly PORT:number = 9090;
@@ -54,10 +55,19 @@ export class ChatServer {
                 clientNumber++;
             });
 
-            socket.on('message', (m: MessageModel) => {
-                console.log('[server](message): %s', JSON.stringify(m));
-                const response: string = `Says pong to ${JSON.stringify(m)}`;
-                socket.send(JSON.stringify(response));
+            socket.on('message', (m: any) => {
+                const payload: any = JSON.parse(m);
+                if (payload.message === 'like') {
+                    const message: MessageModel = new MessageModel(payload.message, payload.data);
+                    // Broadcast to other clients...
+                    this.io.clients.forEach((client: any) => {
+                        if (client != socket) { // All but me
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify(message));
+                            }
+                        }
+                    })
+                }
             });
 
             socket.on('disconnect', () => {
