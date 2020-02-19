@@ -57,16 +57,22 @@ export class ChatServer {
 
             socket.on('message', (m: any) => {
                 const payload: any = JSON.parse(m);
+
                 if (payload.message === 'like') {
-                    const message: MessageModel = new MessageModel(payload.message, payload.data);
+                    const message: MessageModel = new MessageModel(
+                        payload.message, 
+                        payload.data
+                    );
+                    
                     // Broadcast to other clients...
                     this.io.clients.forEach((client: any) => {
                         if (client != socket) { // All but me
+                            console.log(`Send new movie to clients`);
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify(message));
                             }
                         }
-                    })
+                    });
                 }
             });
 

@@ -1,5 +1,3 @@
-import { UserModel } from "./user-model";
-
 export class MessageModel {
     private _message: string;
     private _data: any;
